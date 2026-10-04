@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KidRoutine">
+<title>KidRoutine</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033}
+*{box-sizing:border-box} body{margin:0;background:#f4f7fb}
+.app{max-width:600px;margin:auto;padding:18px 16px 80px}
+.top{display:flex;justify-content:space-between;align-items:center}.brand{font-size:28px;font-weight:900}
+.pill,.card,.profile,.task,.btn{background:#fff;border:0;box-shadow:0 3px 14px #00000010}
+.pill{padding:8px 12px;border-radius:18px}.card{border-radius:24px;padding:18px;margin-top:14px}
+.title{font-size:22px;font-weight:900}.sub{color:#707b8e;font-size:14px}.profiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.profile{border-radius:22px;padding:22px 10px;font-size:18px;font-weight:850;text-align:center}
+.profile .avatar{font-size:44px;display:block;margin-bottom:8px}
+.parent{grid-column:1/-1;background:#eaf0ff}.hidden{display:none!important}
+.back{border:0;background:transparent;font-size:16px;font-weight:800;color:#3677df;padding:8px 0}
+.pinbox{display:flex;justify-content:center;gap:10px;margin:20px 0}.dot{width:17px;height:17px;border:2px solid #8d98aa;border-radius:50%}.dot.on{background:#397be5;border-color:#397be5}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pad button,.btn{border-radius:18px;padding:17px;font-size:20px;font-weight:850}.pad button{border:0;background:#fff;box-shadow:0 2px 10px #0001}.error{color:#c23b3b;text-align:center;min-height:22px}
+.score{font-size:44px;font-weight:950}.bar{height:13px;background:#e6ebf3;border-radius:12px;overflow:hidden;margin:10px 0}.fill{height:100%;background:#4e86f7}
+.section{font-size:20px;font-weight:900;margin:22px 3px 10px}.tasks{display:grid;gap:10px}.task{display:flex;align-items:center;gap:10px;border-radius:19px;padding:14px}
+.icon{font-size:25px;width:34px}.name{flex:1;font-weight:760}.pts{font-weight:900;color:#416bd6}.status{font-size:12px;font-weight:850;padding:7px 9px;border-radius:12px;background:#eef2f8}
+.task.pending{background:#fff9e6}.task.done{background:#eef9f1}.task button{border:0;background:transparent;font-size:14px;font-weight:850;color:#2d6fd4}
+.reward{background:#fff4d1}.weekly{background:#fff}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.btn{font-size:15px;background:#e8eef9}.danger{background:#ffe8e8}.logout{background:#edf1f6}
+.approve{display:flex;gap:7px}.approve button{border:0;border-radius:11px;padding:8px 9px;font-weight:850}.yes{background:#dff4e5}.no{background:#ffe3e3}
+.note{text-align:center;color:#7b8595;font-size:12px;margin-top:18px}
+</style>
+</head>
+<body><main class="app">
+<div class="top"><div class="brand">⭐ KidRoutine</div><div class="pill" id="date"></div></div>
+
+<section id="home">
+  <div class="card"><div class="title">Who is using KidRoutine?</div><div class="sub">Choose a profile to continue.</div></div>
+  <div class="profiles">
+    <button class="profile" data-login="kid0"><span class="avatar">👦</span>Abrar</button>
+    <button class="profile" data-login="kid1"><span class="avatar">👧</span>Ahrar</button>
+    <button class="profile parent" data-login="parent">🔒 Parent Mode</button>
+  </div>
+</section>
+
+<section id="login" class="hidden">
+  <button class="back" id="back">← Back</button>
+  <div class="card">
+    <div class="title" id="loginTitle">Enter PIN</div>
+    <div class="sub" id="loginSub">Use the 4-digit PIN.</div>
+    <div class="pinbox" id="dots"></div><div class="error" id="error"></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</section>
+
+<section id="dashboard" class="hidden">
+  <div class="card">
+    <div class="sub" id="modeLabel"></div>
+    <div class="title" id="hello"></div>
+    <div class="score"><span id="score">0</span> ⭐</div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div id="goal"></div>
+  </div>
+  <div class="section">Today's routine</div>
+  <div class="tasks" id="tasks"></div>
+  <div class="card reward"><b>🎁 Daily reward</b><div class="sub">100 approved points → ice cream or extra fun time.</div></div>
+  <div class="card weekly"><b>🏆 Weekly progress</b><div class="score" style="font-size:28px"><span id="weekly">0</span> ⭐</div><div class="sub">500 → Movie night &nbsp; • &nbsp; 1,000 → Big surprise</div></div>
+  <div class="actions" id="parentActions"></div>
+  <button class="btn logout" style="width:100%;margin-top:10px" id="logout">← Switch profile</button>
+  <div class="note">Prototype: information is stored only in this browser on this device.</div>
+</section>
+</main>
+<script>
+const TASKS=[['⏰','Wake up on time for school',20],['🪥','Brush teeth — morning',10],['👕','Get dressed & ready',10],['🛏️','Make / organize bed',10],['🥣','Eat breakfast',10],['🥪','Eat lunch',15],['📚','Do homework',20],['🤝','Play nicely / share',10],['🧸','Put toys away',15],['🧹','Help with a small chore',15],['🚿','Bath / shower',10],['🪥','Brush teeth — night',10],['🌙','Get ready for bed on time',15]];
+const KEY='kidroutine-v2';
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
+ kids:[{name:'Abrar',pin:'1111',days:{}},{name:'Ahrar',pin:'2222',days:{}}],
+ parentPin:'2468'
+};
+let session=null,target=null,pin='';
+const $=id=>document.getElementById(id), today=()=>new Date().toISOString().slice(0,10);
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function day(i){let k=state.kids[i];return k.days[today()]||(k.days[today()]={status:Array(TASKS.length).fill(0)})}
+function approvedScore(d){return d.status.reduce((s,x,i)=>s+(x===2?TASKS[i][2]:0),0)}
+function weekScore(i){let now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));mon.setHours(0,0,0,0);let sum=0;for(let n=0;n<7;n++){let d=new Date(mon);d.setDate(mon.getDate()+n);let x=state.kids[i].days[d.toISOString().slice(0,10)];if(x)sum+=approvedScore(x)}return sum}
+function show(id){['home','login','dashboard'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+function openLogin(t){target=t;pin='';$('error').textContent='';$('loginTitle').textContent=t==='parent'?'🔒 Parent Mode':(t==='kid0'?'👦 Abrar':'👧 Ahrar');$('loginSub').textContent='Enter your 4-digit PIN';drawDots();show('login')}
+function drawDots(){ $('dots').innerHTML=[0,1,2,3].map(i=>`<span class="dot ${i<pin.length?'on':''}"></span>`).join('') }
+function checkPin(){let ok=target==='parent'?pin===state.parentPin:pin===state.kids[target==='kid0'?0:1].pin;if(ok){session=target==='parent'?{mode:'parent',kid:0}:{mode:'kid',kid:target==='kid0'?0:1};render();show('dashboard')}else{$('error').textContent='Wrong PIN. Try again.';pin='';drawDots()}}
+$('pad').innerHTML=[1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].map(x=>`<button data-n="${x}">${x}</button>`).join('');
+$('pad').onclick=e=>{let n=e.target.dataset.n;if(n===undefined)return;if(n==='⌫'){pin=pin.slice(0,-1)}else if(n==='✓'){if(pin.length===4)checkPin();return}else if(pin.length<4){pin+=n}drawDots();if(pin.length===4)setTimeout(checkPin,120)};
+document.querySelectorAll('[data-login]').forEach(b=>b.onclick=()=>openLogin(b.dataset.login));
+$('back').onclick=()=>show('home'); $('logout').onclick=()=>{session=null;show('home')};
+function render(){
+ let i=session.kid,d=day(i),s=approvedScore(d);
+ $('date').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+ $('modeLabel').textContent=session.mode==='parent'?'PARENT MODE':'KID MODE';
+ $('hello').textContent=session.mode==='parent'?`Managing ${state.kids[i].name}`:`Hi ${state.kids[i].name}! 👋`;
+ $('score').textContent=s;$('fill').style.width=Math.min(100,s)+'%';$('goal').textContent=s>=100?'🎉 Today’s reward unlocked!':`${100-s} approved points to today’s reward`;$('weekly').textContent=weekScore(i);
+ $('tasks').innerHTML=TASKS.map((t,n)=>{
+   let st=d.status[n], cls=st===1?'pending':st===2?'done':'', label=st===1?'Waiting':st===2?'Approved':'Not done';
+   let control='';
+   if(session.mode==='kid') control=st===0?`<button data-request="${n}">I did it!</button>`:`<span class="status">${label}</span>`;
+   else control=st===1?`<span class="approve"><button class="yes" data-approve="${n}">✓</button><button class="no" data-deny="${n}">✕</button></span>`:`<button data-toggle="${n}">${st===2?'Undo':'Approve'}</button>`;
+   return `<div class="task ${cls}"><div class="icon">${t[0]}</div><div class="name">${t[1]}</div><div class="pts">+${t[2]}</div>${control}</div>`
+ }).join('');
+ document.querySelectorAll('[data-request]').forEach(b=>b.onclick=()=>{d.status[+b.dataset.request]=1;save();render()});
+ document.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>{d.status[+b.dataset.approve]=2;save();render()});
+ document.querySelectorAll('[data-deny]').forEach(b=>b.onclick=()=>{d.status[+b.dataset.deny]=0;save();render()});
+ document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{let n=+b.dataset.toggle;d.status[n]=d.status[n]===2?0:2;save();render()});
+ if(session.mode==='parent'){
+   $('parentActions').innerHTML=`<button class="btn" id="switchKid">⇄ Switch child</button><button class="btn danger" id="reset">↻ Reset today</button><button class="btn" id="pins" style="grid-column:1/-1">🔑 Change PINs</button>`;
+   $('switchKid').onclick=()=>{session.kid=session.kid?0:1;render()};
+   $('reset').onclick=()=>{if(confirm("Clear today's tasks for "+state.kids[i].name+"?")){state.kids[i].days[today()]={status:Array(TASKS.length).fill(0)};save();render()}};
+   $('pins').onclick=()=>{let p=prompt('New Parent PIN (4 digits):',state.parentPin);if(p&&/^\d{4}$/.test(p)){state.parentPin=p;let a=prompt('Abrar PIN (4 digits):',state.kids[0].pin);if(a&&/^\d{4}$/.test(a))state.kids[0].pin=a;let h=prompt('Ahrar PIN (4 digits):',state.kids[1].pin);if(h&&/^\d{4}$/.test(h))state.kids[1].pin=h;save();alert('PINs saved.')}}; 
+ } else $('parentActions').innerHTML='';
+ save();
+}
+$('date').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+save();
+</script></body></html>
